@@ -1,0 +1,179 @@
+
+
+/* === Fix white boxes inside dark left panel === */
+#controlPanel .card,
+#controlPanel .summary-card,
+#controlPanel .metric-card,
+#controlPanel .feature-card,
+#controlPanel .layer-card,
+#controlPanel .layer-group,
+#controlPanel .legend,
+#controlPanel .legend-card,
+#controlPanel .leaflet-control-layers,
+#controlPanel .leaflet-control-layers-list,
+#controlPanel .leaflet-control-layers-overlays,
+#controlPanel .leaflet-control-layers-base,
+#controlPanel .features,
+#controlPanel .features-box,
+#controlPanel .checkbox-group,
+#controlPanel .map-layer-group,
+.sidebar .card,
+.sidebar .summary-card,
+.sidebar .metric-card,
+.sidebar .feature-card,
+.sidebar .layer-card,
+.sidebar .layer-group,
+.sidebar .legend,
+.sidebar .legend-card,
+.sidebar .leaflet-control-layers,
+.sidebar .leaflet-control-layers-list,
+.sidebar .leaflet-control-layers-overlays,
+.sidebar .leaflet-control-layers-base,
+.sidebar .features,
+.sidebar .features-box,
+.sidebar .checkbox-group,
+.sidebar .map-layer-group,
+.left-panel .card,
+.left-panel .summary-card,
+.left-panel .metric-card,
+.left-panel .feature-card,
+.left-panel .layer-card,
+.left-panel .layer-group,
+.left-panel .legend,
+.left-panel .legend-card,
+.left-panel .leaflet-control-layers,
+.left-panel .leaflet-control-layers-list,
+.left-panel .leaflet-control-layers-overlays,
+.left-panel .leaflet-control-layers-base,
+.left-panel .features,
+.left-panel .features-box,
+.left-panel .checkbox-group,
+.left-panel .map-layer-group,
+.panel .leaflet-control-layers,
+.botnang-sidebar .leaflet-control-layers {
+  background: rgba(15, 30, 50, 0.88) !important;
+  color: #EAF2FF !important;
+  border: 1px solid rgba(124, 58, 237, 0.28) !important;
+  box-shadow: none !important;
+}
+
+#controlPanel .metric,
+#controlPanel .stat,
+#controlPanel .kpi,
+#controlPanel .selected-card,
+#controlPanel .scenario-card,
+#controlPanel .feature-item,
+.sidebar .metric,
+.sidebar .stat,
+.sidebar .kpi,
+.sidebar .selected-card,
+.sidebar .scenario-card,
+.sidebar .feature-item,
+.left-panel .metric,
+.left-panel .stat,
+.left-panel .kpi,
+.left-panel .selected-card,
+.left-panel .scenario-card,
+.left-panel .feature-item {
+  background: rgba(20, 38, 62, 0.92) !important;
+  color: #EAF2FF !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 10px !important;
+}
+
+#controlPanel label,
+#controlPanel span,
+#controlPanel small,
+#controlPanel p,
+#controlPanel div,
+.sidebar label,
+.sidebar span,
+.sidebar small,
+.sidebar p,
+.sidebar div,
+.left-panel label,
+.left-panel span,
+.left-panel small,
+.left-panel p,
+.left-panel div {
+  color: #EAF2FF;
+}
+
+#controlPanel .note,
+#controlPanel .description,
+#controlPanel .subtitle,
+#controlPanel small,
+.sidebar .note,
+.sidebar .description,
+.sidebar .subtitle,
+.sidebar small,
+.left-panel .note,
+.left-panel .description,
+.left-panel .subtitle,
+.left-panel small {
+  color: #AFC2DA !important;
+}
+
+#controlPanel input[type="checkbox"],
+.sidebar input[type="checkbox"],
+.left-panel input[type="checkbox"] {
+  accent-color: #8B5CF6;
+}
+
+#controlPanel .selected-scenario-grid > div,
+#controlPanel .selected-scenario-grid .card,
+#controlPanel .selected-scenario-grid .metric,
+#controlPanel .selected-scenario-grid .kpi,
+.sidebar .selected-scenario-grid > div,
+.sidebar .selected-scenario-grid .card,
+.sidebar .selected-scenario-grid .metric,
+.sidebar .selected-scenario-grid .kpi,
+.left-panel .selected-scenario-grid > div,
+.left-panel .selected-scenario-grid .card,
+.left-panel .selected-scenario-grid .metric,
+.left-panel .selected-scenario-grid .kpi {
+  background: rgba(20, 38, 62, 0.96) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(124, 58, 237, 0.25) !important;
+}
+
+/* Common qgis2web generated controls/layer list */
+.leaflet-control-layers,
+.leaflet-control-layers-expanded {
+  background: rgba(15, 30, 50, 0.94) !important;
+  color: #EAF2FF !important;
+  border: 1px solid rgba(124, 58, 237, 0.28) !important;
+  border-radius: 12px !important;
+}
+
+.leaflet-control-layers label,
+.leaflet-control-layers span {
+  color: #EAF2FF !important;
+}
+
+.leaflet-control-layers-separator {
+  border-top-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* Make white metric boxes dark even if they are plain direct children */
+section[class*="selected"] div,
+div[class*="selected"] div,
+section[class*="feature"] div,
+div[class*="feature"] div {
+  border-color: rgba(148, 163, 184, 0.20);
+}
+
+section[class*="selected"] > div:not([class*="title"]):not([class*="header"]),
+div[class*="selected"] > div:not([class*="title"]):not([class*="header"]),
+section[class*="feature"] > div:not([class*="title"]):not([class*="header"]),
+div[class*="feature"] > div:not([class*="title"]):not([class*="header"]) {
+  background: rgba(20, 38, 62, 0.92) !important;
+  color: #EAF2FF !important;
+}
+
+/* Keep buttons readable */
+#controlPanel button,
+.sidebar button,
+.left-panel button {
+  color: #FFFFFF !important;
+}

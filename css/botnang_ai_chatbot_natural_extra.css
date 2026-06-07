@@ -1,0 +1,26 @@
+
+/* Natural BotnangBot text rendering */
+.botnang-msg.bot p,
+.botnang-msg.bot div {
+  margin: 0 0 8px 0 !important;
+}
+
+.botnang-msg.bot p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.botnang-msg.bot strong {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.botnang-msg.bot a {
+  color: #93c5fd !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+}
+
+.botnang-msg.bot {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}

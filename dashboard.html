@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Botnang Dashboard</title>
+  <style>
+    :root {
+      --purple:#7b3ff2;
+      --blue:#2563eb;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#dbe3ef;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --soft:#f1f5f9;
+      --red:#dc2626;
+      --green:#16a34a;
+      --orange:#f59e0b;
+      --cyan:#06b6d4;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+    body{overflow:hidden}
+    .wrap{height:100vh;overflow-y:auto;padding:12px 14px 18px 14px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+    .title h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.02em}
+    .title p{margin:5px 0 0;font-size:10.5px;color:#315078;line-height:1.35}
+    .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:#52657f;font-size:10.5px;font-weight:700;white-space:nowrap}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:5px}
+    label{font-size:12px;font-weight:900;color:#334155;display:block;margin-bottom:6px}
+    select{width:100%;border:1px solid #cbd5e1;border-radius:13px;background:white;padding:8px 9px;font-weight:800;color:#0f172a}
+
+    .selected-state{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 14px 0}
+    .state-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:0 4px 12px rgba(15,23,42,.04)}
+    .state-box span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:900;margin-bottom:4px}
+    .state-box strong{display:block;font-size:15px;line-height:1.15;color:var(--ink);font-weight:900}
+
+    .tabs{display:flex;gap:12px;border-bottom:1px solid var(--line);margin:4px 0 10px 0;overflow-x:auto}
+    .tab{border:0;background:transparent;color:#53657d;font-weight:900;font-size:12px;padding:6px 0 7px 0;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+    .tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+    .panel{display:none}
+    .panel.active{display:block}
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:5px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px;box-shadow:0 8px 22px rgba(15,23,42,.07);min-height:78px}
+    .card .label{font-size:10px;text-transform:none;color:#60738d;font-weight:900;margin-bottom:5px}
+    .card .value{font-size:21px;font-weight:900;letter-spacing:-.04em;color:#020617}
+    .card .note{font-size:10.5px;color:#315078;margin-top:7px;line-height:1.3}
+    .chart-card,.info-card,.formula-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px;box-shadow:0 8px 22px rgba(15,23,42,.06);margin-bottom:10px}
+    h2{font-size:13px;margin:0 0 8px 0}
+    .chart{width:100%;height:170px}
+    .chart.small{height:150px}
+    .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:11px;color:#475569}
+    .key{display:inline-flex;align-items:center;gap:5px}
+    .sw{width:12px;height:12px;border-radius:3px;display:inline-block;background:#999}
+    .info-card{font-size:13px;line-height:1.5;color:#1e293b}
+    .formula{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px;font-family:Consolas,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border-bottom:1px solid var(--line);padding:8px 4px;text-align:left}
+    th{font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:.04em}
+    @media(max-width:520px){
+      .wrap{padding:14px}
+      .cards,.controls{grid-template-columns:1fr}
+      .card{min-height:90px}
+      .card .value{font-size:23px}
+    }
+  
+    /* Final compact override */
+    .title h1{font-size:18px!important}
+    .title p{font-size:10.5px!important}
+    .card{padding:10px!important;border-radius:13px!important;min-height:78px!important}
+    .card .label{font-size:10px!important;margin-bottom:5px!important}
+    .card .value{font-size:21px!important;line-height:1.05!important}
+    .card .note{font-size:9.5px!important;margin-top:4px!important}
+    .chart-card,.info-card,.formula-card{padding:11px!important;border-radius:13px!important;margin-bottom:10px!important}
+    h2{font-size:13px!important;margin-bottom:8px!important}
+    .chart{height:170px!important}
+    .chart.small{height:150px!important}
+
+  
+    /* Minimal chart-only update: keeps existing dashboard design */
+    .chart-grid-compact{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      align-items:start;
+    }
+    .chart-grid-compact .chart-card{
+      margin-bottom:0;
+    }
+    .chart-grid-compact .chart{
+      height:155px;
+    }
+    .chart-grid-compact .chart.small{
+      height:145px;
+    }
+    .chart-tooltip{
+      position:fixed;
+      z-index:999999;
+      display:none;
+      min-width:145px;
+      background:#0f172a;
+      color:#fff;
+      padding:8px 10px;
+      border-radius:10px;
+      box-shadow:0 10px 24px rgba(15,23,42,.25);
+      font-size:12px;
+      line-height:1.35;
+      pointer-events:none;
+    }
+    @media(max-width:520px){
+      .chart-grid-compact{grid-template-columns:1fr;}
+    }
+
+  </style>
+
+<style id="botnang-dashboard-dark-visual-only">
+:root{--bg:#071425!important;--card:rgba(18,33,54,.96)!important;--ink:#EAF2FF!important;--muted:#B6C7DD!important;--line:rgba(148,163,184,.22)!important;--purple:#8B5CF6!important;--blue:#2563EB!important;}
+html,body{background:#071425!important;color:#EAF2FF!important;}
+.wrap,.dashboard{background:#071425!important;color:#EAF2FF!important;}
+.card,.chart-card,.info-card,.formula-card,.state-box,.summary,.table-box{background:rgba(18,33,54,.96)!important;color:#EAF2FF!important;border-color:rgba(148,163,184,.22)!important;box-shadow:0 8px 22px rgba(0,0,0,.20)!important;}
+.title h1,h1,h2,.card .value,.card .label,.state-box strong{color:#EAF2FF!important;}
+.title p,.card .note,.state-box span,.pill{color:#B6C7DD!important;}
+.pill{background:rgba(18,33,54,.96)!important;border-color:rgba(148,163,184,.22)!important;}
+.tab{color:#B6C7DD!important}.tab.active{color:#A78BFA!important;border-bottom-color:#8B5CF6!important;}
+svg text{fill:#DDEBFF!important} svg line{stroke:rgba(148,163,184,.25)!important;}
+.formula{background:#020617!important;color:#EAF2FF!important;}
+</style>
+
+
+
+
+<style id="botnang-dashboard-header-dark-final">
+/* Dashboard header like project title card */
+#dashboardPanel .botnang-panel-header,
+.botnang-side-panel .botnang-panel-header {
+  background: #071426 !important;
+  color: #F8FAFC !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.35) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18) !important;
+}
+
+#dashboardPanel .botnang-panel-header span,
+.botnang-side-panel .botnang-panel-header span {
+  color: #F8FAFC !important;
+  font-weight: 900 !important;
+  font-size: 17px !important;
+  letter-spacing: -0.02em !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#dashboardPanel .botnang-panel-close,
+.botnang-side-panel .botnang-panel-close {
+  background: rgba(30, 47, 73, 0.95) !important;
+  color: #EAF2FF !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 12px !important;
+}
+</style>
+
+<style id="tayeb-dashboard-compact-lock">
+/* FINAL COMPACT DASHBOARD FIX — keeps small fonts and 2-column metric boxes even inside the side panel */
+.wrap{padding:10px 12px 14px 12px!important;}
+.title h1{font-size:17px!important;line-height:1.15!important;}
+.title p{font-size:10px!important;margin-top:4px!important;}
+.pill{font-size:10px!important;padding:5px 8px!important;}
+.selected-state,.controls,.cards{
+  display:grid!important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap:8px!important;
+}
+.state-box{padding:9px 10px!important;border-radius:12px!important;}
+.state-box span{font-size:9px!important;margin-bottom:3px!important;}
+.state-box strong{font-size:14px!important;}
+.tabs{gap:12px!important;margin:4px 0 9px 0!important;}
+.tab{font-size:11px!important;padding:6px 0 7px 0!important;}
+.card{padding:9px 10px!important;border-radius:12px!important;min-height:72px!important;}
+.card .label{font-size:9.5px!important;margin-bottom:4px!important;}
+.card .value{font-size:20px!important;line-height:1.0!important;}
+.card .note{font-size:9px!important;margin-top:4px!important;line-height:1.2!important;}
+.chart-card,.info-card,.formula-card{padding:10px!important;border-radius:12px!important;margin-bottom:9px!important;}
+h2{font-size:12px!important;margin-bottom:7px!important;}
+.chart{height:158px!important;}
+.chart.small{height:145px!important;}
+.chart-grid-compact{display:block!important;}
+.chart-grid-compact .chart-card{margin-bottom:9px!important;}
+.legend{font-size:10px!important;gap:7px!important;}
+@media(max-width:520px){
+  .selected-state,.controls,.cards{grid-template-columns: repeat(2, minmax(0,1fr)) !important;}
+  .card{min-height:72px!important;}
+  .card .value{font-size:20px!important;}
+}
+</style>
+
+
+<style id="tayeb-dashboard-hard-lock-final">
+html,body{overflow:hidden!important;background:#071425!important;}
+.wrap{height:100vh!important;overflow-y:auto!important;padding:10px 12px 14px!important;}
+.selected-state,.controls,.cards{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+.card{min-width:0!important;padding:9px 10px!important;min-height:72px!important;border-radius:12px!important;}
+.card .label{font-size:9.5px!important;margin-bottom:4px!important;}
+.card .value{font-size:20px!important;line-height:1!important;}
+.card .note{font-size:9px!important;margin-top:4px!important;line-height:1.2!important;}
+.state-box{min-width:0!important;padding:9px 10px!important;}
+.state-box strong{font-size:14px!important;}
+.title h1{font-size:17px!important;}
+.title p,.pill{font-size:10px!important;}
+.chart-card{padding:10px!important;margin-bottom:9px!important;}
+h2{font-size:12px!important;}
+.chart{height:158px!important}.chart.small{height:145px!important;}
+@media(max-width:520px){.selected-state,.controls,.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.card{min-height:72px!important}.card .value{font-size:20px!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="top">
+    <div class="title">
+      <h1>Demographics</h1>
+      <p>Synced with main WebGIS scenario and year</p>
+    </div>
+    <div class="pill">📍 Botnang</div>
+  </section>
+
+  <section class="selected-state">
+    <div class="state-box">
+      <span>Scenario</span>
+      <strong id="displayScenario">Baseline</strong>
+    </div>
+    <div class="state-box">
+      <span>Year</span>
+      <strong id="displayYear">2025</strong>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="population">Population</button>
+    <button class="tab" data-tab="housing">Housing</button>
+    <button class="tab" data-tab="buildings">Buildings</button>
+    <button class="tab" data-tab="methods">Methods</button>
+  </nav>
+
+  <section id="population" class="panel active">
+    <section class="cards">
+      <div class="card"><div class="label">Total population</div><div class="value" id="totalPop">—</div><div class="note" id="totalPopNote">—</div></div>
+      <div class="card"><div class="label">Total buildings</div><div class="value">3,855</div><div class="note">Residential + non-residential</div></div>
+      <div class="card"><div class="label">Age total</div><div class="value" id="ageTotal">—</div><div class="note" id="ageNote">—</div></div>
+      <div class="card"><div class="label">Net migration</div><div class="value" id="netMigration">—</div><div class="note" id="migrationNote">—</div></div>
+    </section>
+
+    <section class="chart-grid-compact">
+      <section class="chart-card">
+        <h2 id="ageChartTitle">Population by age group</h2>
+        <div id="ageBars" class="chart small"></div>
+        <div class="legend">
+          <span class="key"><span class="sw" style="background:#f59e0b"></span>Under 15</span>
+          <span class="key"><span class="sw" style="background:#a855f7"></span>15–45</span>
+          <span class="key"><span class="sw" style="background:#38bdf8"></span>45–65</span>
+          <span class="key"><span class="sw" style="background:#14b8a6"></span>65+</span>
+        </div>
+      </section>
+
+      <section class="chart-card">
+        <h2>Population scenario by year</h2>
+        <div id="popLine" class="chart"></div>
+      </section>
+
+      <section class="chart-card">
+        <h2 id="migrationChartTitle">Migration balance</h2>
+        <div id="migrationBars" class="chart small"></div>
+      </section>
+    </section>
+  </section>
+
+  <section id="housing" class="panel">
+    <section class="cards">
+      <div class="card"><div class="label">Residential buildings</div><div class="value">2,197</div><div class="note">Used for building-level allocation</div></div>
+      <div class="card"><div class="label">Residential area</div><div class="value">244,184 m²</div><div class="note">Total residential footprint area</div></div>
+      <div class="card"><div class="label">Allocated population</div><div class="value" id="allocatedPop">—</div><div class="note">Distributed to residential buildings</div></div>
+      <div class="card"><div class="label">Avg. area/building</div><div class="value">111.1 m²</div><div class="note">Total area ÷ residential buildings</div></div>
+    </section>
+    <section class="chart-card">
+      <h2>Residential allocation metrics</h2>
+      <div id="housingBars" class="chart small"></div>
+    </section>
+  </section>
+
+  <section id="buildings" class="panel">
+    <section class="chart-card">
+      <h2>Building type distribution</h2>
+      <div id="buildingBars" class="chart"></div>
+    </section>
+    <section class="info-card">
+      <table>
+        <thead><tr><th>Category</th><th>Count</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Residential</td><td>2,197</td><td>Population allocation layer</td></tr>
+          <tr><td>Church / religious</td><td>8</td><td>Religious buildings</td></tr>
+          <tr><td>Hospital / healthcare</td><td>1</td><td>Healthcare category</td></tr>
+          <tr><td>Market / commercial</td><td>184</td><td>Commercial buildings</td></tr>
+          <tr><td>School-related</td><td>16</td><td>Education-related buildings</td></tr>
+          <tr><td>Other non-residential</td><td>1,449</td><td>Remaining non-residential buildings</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </section>
+
+  <section id="methods" class="panel">
+    <section class="formula-card">
+      <h2>Scientific scenario calculation</h2>
+      <div class="formula">Annual Growth Rate = (Population_t / Population_t-1) - 1
+
+Baseline = average annual historical growth = -0.0700% per year
+Standard deviation = 0.8748% per year
+Growth = average + standard deviation = 0.8048% per year
+Decline = average - standard deviation = -0.9448% per year
+
+Future Population = Population_2025 × (1 + Scenario Rate)^(Forecast Year - 2025)</div>
+    </section>
+    <section class="formula-card">
+      <h2>Building allocation formula</h2>
+      <div class="formula">Building Population = (Building Area / Total Residential Building Area) × Selected Population</div>
+    </section>
+    <section class="info-card">
+      Future population values are statistically derived sensitivity scenarios based on Botnang's observed historical variability. They are not official predictions.
+    </section>
+  </section>
+</div>
+
+<script>
+const HIST={2007:12838,2010:12696,2015:13062,2020:13108,2025:12669};
+const YEARS=[2007,2010,2015,2020,2025,2030,2035,2040];
+const BASE_POP=12669, BASE_YEAR=2025;
+let dashboardState={scenario:'baseline',year:2025};
+const RATES={baseline:-0.0006997557857302,growth:0.0080481735950388,decline:-0.0094476851664992};
+const AGE=[
+{year:2007,under_15:1686,age_15_45:4659,age_45_65:3163,age_65_plus:3330,total:12838},
+{year:2010,under_15:1701,age_15_45:4429,age_45_65:3229,age_65_plus:3337,total:12696},
+{year:2015,under_15:1812,age_15_45:4488,age_45_65:3433,age_65_plus:3329,total:13062},
+{year:2020,under_15:1708,age_15_45:4583,age_45_65:3517,age_65_plus:3300,total:13108},
+{year:2021,under_15:1648,age_15_45:4425,age_45_65:3481,age_65_plus:3270,total:12824},
+{year:2022,under_15:1702,age_15_45:4412,age_45_65:3497,age_65_plus:3219,total:12830},
+{year:2023,under_15:1675,age_15_45:4456,age_45_65:3465,age_65_plus:3236,total:12832},
+{year:2024,under_15:1634,age_15_45:4449,age_45_65:3446,age_65_plus:3203,total:12732}
+];
+const MIG=[
+{year:2007,in:552,out:685,net:-133,natural:-13},
+{year:2010,in:569,out:562,net:7,natural:-33},
+{year:2015,in:765,out:671,net:94,natural:-39},
+{year:2020,in:574,out:624,net:-50,natural:-34},
+{year:2021,in:493,out:757,net:-264,natural:-50},
+{year:2022,in:643,out:706,net:-63,natural:-80},
+{year:2023,in:561,out:612,net:-51,natural:-54},
+{year:2024,in:540,out:626,net:-86,natural:-54}
+];
+
+function fmt(n){ return n===null||n===undefined||isNaN(Number(n)) ? 'N/A' : Number(n).toLocaleString(); }
+function scenarioLabel(s){ return s==='growth'?'Growth':s==='decline'?'Decline':'Baseline'; }
+function populationFor(year,scenario){ year=Number(year); if(HIST[year]) return HIST[year]; return Math.round(BASE_POP*Math.pow(1+RATES[scenario], year-BASE_YEAR)); }
+function byYear(arr,year){ return arr.find(d=>Number(d.year)===Number(year)) || null; }
+function latest(arr){ return arr[arr.length-1]; }
+
+function scaleAgeFrom2024ForSelectedPopulation(selectedPop){
+  const base=latest(AGE);
+  const ratio=Number(selectedPop)/Number(base.total);
+  return {
+    year:'simulated',
+    under_15:Math.round(base.under_15*ratio),
+    age_15_45:Math.round(base.age_15_45*ratio),
+    age_45_65:Math.round(base.age_45_65*ratio),
+    age_65_plus:Math.round(base.age_65_plus*ratio),
+    total:Math.round(Number(selectedPop))
+  };
+}
+function getAgeForSelectedYear(year, selectedPop){
+  const exact=byYear(AGE,year);
+  return exact || scaleAgeFrom2024ForSelectedPopulation(selectedPop);
+}
+
+
+function showChartTip(evt, text){
+  const tip=document.getElementById('chartTooltip');
+  if(!tip) return;
+  tip.innerHTML=text;
+  tip.style.left=(evt.clientX+12)+'px';
+  tip.style.top=(evt.clientY+12)+'px';
+  tip.style.display='block';
+}
+function hideChartTip(){
+  const tip=document.getElementById('chartTooltip');
+  if(tip) tip.style.display='none';
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('[data-tip]')) hideChartTip();
+});
+function simulatedNaturalBalance(pop){
+  const base=latest(MIG);
+  const basePop=latest(AGE).total;
+  return Math.round(base.natural*(pop/basePop));
+}
+function simulatedNetMigration(year,scenario){
+  const y=Number(year);
+  const exact=byYear(MIG,y);
+  if(exact) return exact.net;
+
+  // Future years after 2024 are simulated from population change minus natural balance.
+  // This makes 2030, 2035 and 2040 change with the selected scenario instead of repeating one fixed number.
+  const intervalStart = y <= 2030 ? 2025 : y - 5;
+  const popNow = populationFor(y, scenario);
+  const popPrev = populationFor(intervalStart, scenario);
+  const yearsDiff = Math.max(1, y - intervalStart);
+  const populationChange = popNow - popPrev;
+  const avgPop = (popNow + popPrev) / 2;
+  const naturalBalanceForInterval = simulatedNaturalBalance(avgPop) * yearsDiff;
+  return Math.round(populationChange - naturalBalanceForInterval);
+}
+
+function svgBarChart(data, colors, maxVal){
+  const w=360,h=175,padL=38,padR=12,padT=12,padB=36;
+  const values=data.map(d=>Number(d.value));
+  const minVal=Math.min(0,...values);
+  const maxV=maxVal || Math.max(...values,1);
+  const maxVal2=Math.max(maxV,1);
+  const range=maxVal2-minVal || 1;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const zeroY=padT+(maxVal2/range)*plotH;
+  const bw=(plotW/data.length)*0.58, gap=plotW/data.length;
+  let grid='', bars='', labels='', ylabels='';
+  for(let i=0;i<=4;i++){
+    const value=minVal+range*(i/4);
+    const y=padT+plotH-(value-minVal)/range*plotH;
+    grid+=`<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#e2e8f0"/>`;
+    ylabels+=`<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="#64748b">${Math.round(value).toLocaleString()}</text>`;
+  }
+  data.forEach((d,i)=>{
+    const val=Number(d.value);
+    const x=padL+i*gap+gap*0.21;
+    const y=padT+plotH-(val-minVal)/range*plotH;
+    const bh=Math.abs(zeroY-y);
+    const rectY=val>=0?y:zeroY;
+    const tip=`<b>${d.label}</b><br>Value: ${fmt(val)}`;
+    bars+=`<rect data-tip="1" onclick="showChartTip(evt, '${tip}')" x="${x}" y="${rectY}" width="${bw}" height="${Math.max(2,bh)}" rx="3" fill="${colors[i%colors.length]}"></rect><text x="${x+bw/2}" y="${rectY-4}" text-anchor="middle" font-size="9" fill="#0f172a">${fmt(val)}</text>`;
+    labels+=`<text x="${x+bw/2}" y="${h-10}" text-anchor="middle" font-size="8" fill="#475569">${d.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#cbd5e1"/><line x1="${padL}" y1="${zeroY}" x2="${w-padR}" y2="${zeroY}" stroke="#94a3b8"/>${grid}${ylabels}${bars}${labels}</svg>`;
+}
+function svgLineChart(labels, values, scenarioValues){
+  const w=380,h=200,padL=42,padR=12,padT=12,padB=42;
+  const all=values.concat(scenarioValues).filter(v=>v!==null&&v!==undefined);
+  const min=Math.min(...all)-80, max=Math.max(...all)+80, range=max-min || 1;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  function pt(v,i){ const x=padL+i*plotW/(labels.length-1); const y=padT+plotH-(v-min)/range*plotH; return [x,y]; }
+  function path(vals){ return vals.map((v,i)=>v===null?null:pt(v,i)).filter(Boolean).map((p,i)=>(i?'L':'M')+p[0]+','+p[1]).join(' '); }
+  let grid='', ylabels='', xlabels='', dots='';
+  for(let i=0;i<=4;i++){
+    const value=min+range*(i/4);
+    const y=padT+plotH-(value-min)/range*plotH;
+    grid+=`<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#e2e8f0"/>`;
+    ylabels+=`<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="#64748b">${Math.round(value).toLocaleString()}</text>`;
+  }
+  labels.forEach((l,i)=>{
+    const x=padL+i*plotW/(labels.length-1);
+    xlabels+=`<text x="${x}" y="${h-12}" font-size="8" fill="#475569" text-anchor="middle" transform="rotate(-35 ${x} ${h-12})">${l}</text>`;
+    const val=values[i]??scenarioValues[i];
+    if(val!==null&&val!==undefined){
+      const p=pt(val,i);
+      const tip=`<b>${l}</b><br>Population: ${fmt(val)}`;
+      dots+=`<circle data-tip="1" onclick="showChartTip(evt, '${tip}')" cx="${p[0]}" cy="${p[1]}" r="4" fill="#2563eb"></circle>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#cbd5e1"/><line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="#cbd5e1"/>${grid}${ylabels}<path d="${path(values)}" fill="none" stroke="#38a3e8" stroke-width="3"/><path d="${path(scenarioValues)}" fill="none" stroke="#ff5c7a" stroke-width="3" stroke-dasharray="6 5"/>${dots}${xlabels}</svg>`;
+}
+function setStateFromParent(scenario, year){
+  if(scenario) dashboardState.scenario=scenario;
+  if(year) dashboardState.year=Number(year);
+  update();
+}
+function update(){
+  const scenario=dashboardState.scenario;
+  const year=Number(dashboardState.year);
+  const ds=document.getElementById('displayScenario'); if(ds) ds.textContent=scenarioLabel(scenario);
+  const dy=document.getElementById('displayYear'); if(dy) dy.textContent=String(year);
+  const pop=populationFor(year, scenario);
+  const ageExact=byYear(AGE,year);
+  const migExact=byYear(MIG,year);
+  const age=getAgeForSelectedYear(year,pop);
+  const mig=migExact || {net: simulatedNetMigration(year, scenario)};
+  document.getElementById('totalPop').textContent=fmt(pop);
+  document.getElementById('totalPopNote').textContent=HIST[year]?'Observed KOMUNIS year':scenarioLabel(scenario)+' scientific scenario';
+  document.getElementById('allocatedPop').textContent=fmt(pop);
+  document.getElementById('ageTotal').textContent=fmt(age.total);
+  document.getElementById('ageNote').textContent=ageExact ? ('Age structure, '+year) : ('Simulated from 2024 age shares');
+  document.getElementById('netMigration').textContent=fmt(mig.net);
+  document.getElementById('migrationNote').textContent=migExact ? ('Migration balance, '+year) : 'Simulated from annual scenario change';
+
+  const ageForChart=age;
+  const ageTitle=document.getElementById('ageChartTitle');
+  if(ageTitle) ageTitle.textContent = ageExact ? ('Population by age group — '+year) : ('Population by age group — simulated '+year);
+  const migrationTitle=document.getElementById('migrationChartTitle');
+  if(migrationTitle) migrationTitle.textContent = migExact ? ('Migration balance — '+year) : 'Migration balance — simulated '+year;
+  document.getElementById('ageBars').innerHTML=svgBarChart([
+    {label:'Under 15',value:ageForChart.under_15},
+    {label:'15–45',value:ageForChart.age_15_45},
+    {label:'45–65',value:ageForChart.age_45_65},
+    {label:'65+',value:ageForChart.age_65_plus}
+  ], ['#f59e0b','#a855f7','#38bdf8','#14b8a6']);
+
+  const observed=YEARS.map(y=>HIST[y]||null);
+  const scen=YEARS.map(y=>populationFor(y,scenario));
+  document.getElementById('popLine').innerHTML=svgLineChart(YEARS, observed, scen);
+
+  const migYears=[2007,2010,2015,2020,2024,2030,2035,2040];
+  const migData=migYears.map(y=>({label:String(y),value:simulatedNetMigration(y,scenario)}));
+  document.getElementById('migrationBars').innerHTML=svgBarChart(migData, ['#2563eb']);
+
+  document.getElementById('housingBars').innerHTML=svgBarChart([
+    {label:'Buildings',value:2197},
+    {label:'Area/100',value:2441.84},
+    {label:'Avg area',value:111.1}
+  ], ['#7b3ff2','#2563eb','#14b8a6']);
+
+  document.getElementById('buildingBars').innerHTML=svgBarChart([
+    {label:'Residential',value:2197},
+    {label:'Church',value:8},
+    {label:'Hospital',value:1},
+    {label:'Market',value:184},
+    {label:'School',value:16},
+    {label:'Other',value:1449}
+  ], ['#ef4444','#7c3aed','#22c55e','#14b8a6','#38bdf8','#64748b']);
+}
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+  update();
+}));
+
+
+
+
+window.addEventListener('message',e=>{ if(e.data&&e.data.type==='botnang-forecast-sync') setStateFromParent(e.data.scenario,e.data.year); });
+const q=new URLSearchParams(location.search);
+if(q.get('scenario')) dashboardState.scenario=q.get('scenario');
+if(q.get('year')) dashboardState.year=Number(q.get('year'));
+update();
+</script>
+<div id="chartTooltip" class="chart-tooltip"></div>
+</body>
+</html>

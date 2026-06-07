@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: botnang_postgis
+    environment:
+      POSTGRES_DB: botnang_gis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - botnang_postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+
+  web:
+    build:
+      context: ./backend
+    container_name: botnang_webgis
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+
+volumes:
+  botnang_postgres_data:

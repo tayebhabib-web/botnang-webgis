@@ -1,0 +1,20 @@
+# Secrets
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Database backups / local dumps
+database/botnang_backup.sql
+*.sql
+*.backup
+*.dump

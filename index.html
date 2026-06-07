@@ -1,0 +1,1968 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ===== Botnang final web design - visual only, no scripted AI questions ===== */
+        :root {
+            --purple: #7b3ff2;
+            --blue: #2563eb;
+            --ink: #102033;
+            --soft: #f1f5f9;
+            --line: #e2e8f0;
+            --panel: rgba(255,255,255,0.97);
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f8fb;
+        }
+
+        .leaflet-control-layers {
+            display: none !important;
+        }
+
+        .leaflet-control-zoom,
+        .leaflet-control-measure {
+            border: none !important;
+            box-shadow: 0 8px 28px rgba(15,23,42,0.16) !important;
+            border-radius: 14px !important;
+            overflow: hidden;
+        }
+
+        .title-card {
+            position: absolute;
+            top: 18px;
+            left: 82px;
+            z-index: 1000;
+            width: 360px;
+            max-width: calc(100vw - 120px);
+            background: var(--panel);
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(15,23,42,0.16);
+            border-left: 6px solid #d7191c;
+            overflow: hidden;
+            backdrop-filter: blur(6px);
+        }
+
+        .title-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 13px 18px;
+        }
+
+        .title-row > div:first-child {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .title-card h1 {
+            margin: 0;
+            font-size: 19px;
+            line-height: 1.2;
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .title-card p {
+            margin: 7px 0 0 0;
+            font-size: 12px;
+            color: #334155;
+        }
+
+        .title-toggle-btn {
+            flex: 0 0 auto;
+            width: 34px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid #dbe3ee;
+            background: #ffffff;
+            color: #334155;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(15,23,42,0.16);
+            line-height: 1;
+        }
+
+        .left-panel {
+            border-top: 1px solid #e2e8f0;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+            padding: 0 14px 14px 14px;
+        }
+
+        body.left-panel-hidden .left-panel {
+            display: none !important;
+        }
+
+        body.left-panel-hidden .title-toggle-btn {
+            transform: rotate(180deg);
+        }
+
+        .stats-card, .feature-card, .legend-card-inner {
+            margin-top: 11px;
+            padding: 11px;
+            border-radius: 13px;
+            background: var(--soft);
+            font-size: 12px;
+            color: #243447;
+            line-height: 1.45;
+            border: 1px solid rgba(226,232,240,0.9);
+        }
+
+        .mini-title {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 7px;
+            color: var(--ink);
+        }
+
+        .toggle-row,
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            margin: 6px 0;
+            color: #263747;
+            font-weight: 700;
+        }
+
+        .toggle-row input {
+            width: auto;
+            margin: 0;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 14px;
+            border: 1px solid rgba(0,0,0,0.25);
+            border-radius: 4px;
+            flex: 0 0 auto;
+        }
+
+        .legend-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #64748b;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
+
+        .primary-btn {
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 10px;
+            padding: 9px;
+            font-size: 13px;
+            border: none !important;
+            background: var(--blue) !important;
+            color: white !important;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(37,99,235,0.28);
+            margin-top: 10px;
+        }
+
+        .right-action-btn {
+            position: absolute;
+            right: 26px;
+            min-width: 58px;
+            height: 52px;
+            z-index: 99999;
+            color: #fff;
+            border: none;
+            padding: 0 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(15,23,42,0.22);
+            transition: transform .2s ease;
+        }
+
+        .right-action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        #dashboardBtn {
+            top: 24px;
+            background: var(--purple);
+        }
+
+        #botnangBotBtn {
+            top: 92px;
+            background: var(--blue);
+        }
+
+        .side-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 440px;
+            height: 100%;
+            background: white;
+            z-index: 99998;
+            display: none;
+            box-shadow: -8px 0 28px rgba(15,23,42,0.22);
+            border-left: 1px solid rgba(15,23,42,0.08);
+        }
+
+        .side-panel.is-open {
+            display: block;
+        }
+
+        .side-header {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            color: #111827;
+            font-weight: 800;
+            box-sizing: border-box;
+        }
+
+        .side-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            background: #f3f4f6;
+            color: #111827;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .side-content {
+            height: calc(100% - 52px);
+            overflow-y: auto;
+            padding: 16px;
+            box-sizing: border-box;
+            background: #f8fafc;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #243447;
+        }
+
+        .side-card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+            margin-bottom: 12px;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.24);
+        }
+
+        .leaflet-popup-content table {
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .title-card {
+                left: 14px !important;
+                width: 330px;
+                max-width: calc(100vw - 28px);
+            }
+            .side-panel {
+                width: 92vw;
+            }
+            .right-action-btn {
+                right: 20px;
+            }
+        }
+
+
+        .legend-gradient {
+            width: 100%;
+            height: 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.2);
+            background: linear-gradient(90deg, rgba(35,35,35,0.35), #5b2a86, #d84b57, #ff9e2c, #fff176);
+            margin: 6px 0 4px 0;
+        }
+        .legend-line {
+            width: 24px;
+            height: 0;
+            border-top: 4px solid #c42323;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+
+        /* Grouped building layer controls */
+        .layer-group-card {
+            margin: 8px 0 4px 0;
+            padding: 9px 10px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #dbe3ee;
+        }
+        .layer-parent-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #102033;
+            margin: 0 0 7px 0;
+        }
+        .layer-parent-row input { width: auto; margin: 0; }
+        .sub-toggle-list {
+            margin-left: 18px;
+            padding-left: 10px;
+            border-left: 2px solid #e2e8f0;
+        }
+        .sub-toggle-list .toggle-row {
+            margin: 5px 0;
+            font-size: 11.5px;
+        }
+        .legend-subtitle {
+            font-size: 11px;
+            font-weight: 900;
+            color: #334155;
+            margin: 7px 0 4px 0;
+        }
+
+        /* ===== Scenario and year controls for Botnang project ===== */
+        .scenario-card {
+            margin-top: 11px;
+            padding: 11px;
+            border-radius: 13px;
+            background: var(--soft);
+            border: 1px solid rgba(226,232,240,0.9);
+            color: #243447;
+        }
+        .scenario-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin: 6px 0 8px 0;
+        }
+        .scenario-buttons button {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #111827;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 9px 6px;
+            border-radius: 10px;
+        }
+        .scenario-buttons button.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+            box-shadow: 0 2px 10px rgba(37,99,235,0.25);
+        }
+        .scenario-buttons button[data-scenario="growth"].active {
+            background: #16a34a;
+            border-color: #16a34a;
+        }
+        .scenario-buttons button[data-scenario="decline"].active {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+        .scenario-note {
+            font-size: 10.5px;
+            color: #64748b;
+            line-height: 1.35;
+            margin: 4px 0 8px 0;
+        }
+        .year-slider-card {
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 14px;
+            padding: 9px 10px;
+            margin: 6px 0 10px 0;
+        }
+        .year-slider-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 9px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #111827;
+        }
+        .year-slider-row input[type=range] {
+            width: 100%;
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+        .year-current-pill {
+            background: #eaf2ff;
+            color: var(--blue);
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-weight: 900;
+            min-width: 42px;
+            text-align: center;
+        }
+        .scenario-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-top: 8px;
+        }
+        .scenario-summary-item {
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 7px 8px;
+            font-size: 11px;
+        }
+        .scenario-summary-item b {
+            display: block;
+            font-size: 12px;
+            color: #102033;
+            margin-bottom: 2px;
+        }
+
+        
+
+/* ===== PROFESSIONAL DARK UI FIX - visual only ===== */
+:root {
+    --purple: #8B5CF6 !important;
+    --blue: #2563EB !important;
+    --ink: #EAF2FF !important;
+    --soft: rgba(20, 38, 62, 0.92) !important;
+    --line: rgba(148, 163, 184, 0.22) !important;
+    --panel: rgba(9, 22, 39, 0.94) !important;
+}
+body { background:#071425 !important; color:#EAF2FF !important; }
+#map { background:#071425 !important; }
+.title-card {
+    background: rgba(9,22,39,0.96) !important;
+    color:#EAF2FF !important;
+    border-left: 5px solid #8B5CF6 !important;
+    border: 1px solid rgba(124,58,237,0.32) !important;
+    box-shadow: 0 16px 42px rgba(0,0,0,0.42) !important;
+    backdrop-filter: blur(10px) !important;
+}
+.title-card h1, .title-card p { color:#EAF2FF !important; }
+.title-card p { color:#B6C7DD !important; }
+.title-toggle-btn {
+    background: rgba(20,38,62,0.95) !important;
+    color:#EAF2FF !important;
+    border:1px solid rgba(148,163,184,0.25) !important;
+}
+.left-panel { border-top: 1px solid rgba(148,163,184,.22) !important; }
+.scenario-card,
+.stats-card,
+.feature-card,
+.legend-card-inner,
+.layer-group-card,
+.year-slider-card,
+.side-card {
+    background: rgba(18, 33, 54, 0.96) !important;
+    color:#EAF2FF !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.18) !important;
+}
+.mini-title,
+.scenario-card label,
+.legend-subtitle,
+.layer-parent-row,
+.toggle-row,
+.legend-row,
+.scenario-summary-item b,
+.year-slider-row {
+    color:#EAF2FF !important;
+}
+.scenario-note,
+.scenario-summary-item,
+.stats-card,
+.feature-card,
+.legend-card-inner,
+.layer-group-card,
+.year-slider-card,
+.side-content,
+.side-card,
+.toggle-row,
+.legend-row {
+    color:#B6C7DD !important;
+}
+.scenario-buttons button {
+    background: rgba(10,23,40,0.96) !important;
+    color:#EAF2FF !important;
+    border: 1px solid rgba(148,163,184,0.30) !important;
+}
+.scenario-buttons button.active {
+    background: linear-gradient(135deg,#8B5CF6,#2563EB) !important;
+    border-color:#8B5CF6 !important;
+    color:#fff !important;
+}
+.scenario-buttons button[data-scenario="growth"].active {
+    background: linear-gradient(135deg,#10B981,#2563EB) !important;
+    border-color:#10B981 !important;
+}
+.scenario-buttons button[data-scenario="decline"].active {
+    background: linear-gradient(135deg,#F97316,#DC2626) !important;
+    border-color:#F97316 !important;
+}
+.primary-btn {
+    background: linear-gradient(135deg,#8B5CF6,#2563EB) !important;
+    color:#FFFFFF !important;
+    box-shadow: 0 8px 20px rgba(124,58,237,0.28) !important;
+}
+.year-slider-card { background: rgba(10,23,40,0.95) !important; }
+.year-current-pill {
+    background: rgba(124,58,237,0.22) !important;
+    color:#C4B5FD !important;
+    border:1px solid rgba(124,58,237,.35) !important;
+}
+.year-slider-row input[type=range] { accent-color:#8B5CF6 !important; }
+.scenario-summary-item {
+    background: rgba(12, 27, 47, 0.96) !important;
+    border: 1px solid rgba(148,163,184,0.22) !important;
+    color:#B6C7DD !important;
+}
+.scenario-summary-item b { color:#FFFFFF !important; }
+.layer-group-card { background: rgba(12, 27, 47, 0.96) !important; }
+.sub-toggle-list { border-left-color: rgba(139,92,246,0.45) !important; }
+input[type="checkbox"] { accent-color:#8B5CF6 !important; }
+.legend-section-title { color:#A78BFA !important; }
+.legend-color { border-color: rgba(255,255,255,0.28) !important; }
+.side-panel { background: rgba(9,22,39,0.98) !important; border-left:1px solid rgba(148,163,184,.2) !important; }
+.side-header { background: rgba(9,22,39,0.98) !important; color:#EAF2FF !important; border-bottom:1px solid rgba(148,163,184,.2) !important; }
+.side-content { background: rgba(7,20,37,0.98) !important; color:#B6C7DD !important; }
+.side-close { background: rgba(20,38,62,0.95) !important; color:#EAF2FF !important; }
+.right-action-btn { box-shadow:0 14px 30px rgba(0,0,0,.32) !important; }
+#dashboardBtn { background: linear-gradient(135deg,#8B5CF6,#7C3AED) !important; }
+#botnangBotBtn { background: linear-gradient(135deg,#2563EB,#1D4ED8) !important; }
+.leaflet-control-zoom a,
+.leaflet-control-measure a,
+.leaflet-bar a {
+    background: rgba(9,22,39,0.92) !important;
+    color:#EAF2FF !important;
+    border-color: rgba(148,163,184,.2) !important;
+}
+.leaflet-control-zoom,
+.leaflet-control-measure,
+.leaflet-bar { background: rgba(9,22,39,0.92) !important; border-color: rgba(148,163,184,.2) !important; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: rgba(9,22,39,0.97) !important;
+    color:#EAF2FF !important;
+}
+.leaflet-popup-content table, .leaflet-popup-content td, .leaflet-popup-content th { color:#EAF2FF !important; }
+/* Darken heatmap/raster slightly for the dark basemap without changing data */
+.leaflet-pane img.leaflet-image-layer { mix-blend-mode: screen; opacity: .82 !important; }
+
+</style>
+        <title>AI-Assisted Botnang Population & Housing WebGIS</title>
+		<link rel="stylesheet" href="css/botnang_previous_design.css">
+
+<style id="botnang-final-visual-override">
+/* FINAL VISUAL-ONLY FIX: brighter dark basemap + readable dashboard header */
+
+/* Make dark basemap visibly brighter without touching vector/building/heatmap layers */
+.leaflet-tile-pane {
+  opacity: 1 !important;
+}
+.leaflet-tile-pane img,
+.leaflet-layer img.leaflet-tile {
+  filter: brightness(1.70) contrast(1.10) saturate(1.12) !important;
+}
+
+/* Remove/soften any dark map overlay created by the skin */
+#map::before,
+#map::after,
+.leaflet-container::before,
+.leaflet-container::after {
+  opacity: 0.10 !important;
+  background: rgba(15,23,42,0.10) !important;
+  pointer-events: none !important;
+}
+
+/* Dashboard panel white header: force dark readable title */
+#dashboardPanel .botnang-panel-header,
+#dashboardPanel .botnang-panel-header *,
+.botnang-side-panel .botnang-panel-header,
+.botnang-side-panel .botnang-panel-header * {
+  color: #0F172A !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+#dashboardPanel .botnang-panel-header,
+.botnang-side-panel .botnang-panel-header {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E5E7EB !important;
+}
+
+#dashboardPanel .botnang-panel-close,
+.botnang-side-panel .botnang-panel-close {
+  color: #0F172A !important;
+  background: #F3F4F6 !important;
+}
+
+/* Keep dashboard iframe content dark as before */
+#dashboardPanel iframe {
+  background: #07111F !important;
+}
+</style>
+
+
+
+
+<style id="botnang-dashboard-header-dark-final">
+/* Dashboard header like project title card */
+#dashboardPanel .botnang-panel-header,
+.botnang-side-panel .botnang-panel-header {
+  background: #071426 !important;
+  color: #F8FAFC !important;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.35) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18) !important;
+}
+
+#dashboardPanel .botnang-panel-header span,
+.botnang-side-panel .botnang-panel-header span {
+  color: #F8FAFC !important;
+  font-weight: 900 !important;
+  font-size: 17px !important;
+  letter-spacing: -0.02em !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#dashboardPanel .botnang-panel-close,
+.botnang-side-panel .botnang-panel-close {
+  background: rgba(30, 47, 73, 0.95) !important;
+  color: #EAF2FF !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 12px !important;
+}
+</style>
+<link rel="stylesheet" href="css/botnang_dashboard_header_dark.css">
+<style>
+/* Make dark OSM/CARTO basemap slightly brighter */
+.leaflet-tile-pane img {
+  filter: brightness(1.40) contrast(1.05) saturate(1.08) !important;
+}
+</style>
+
+<style id="tayeb-final-top-header-fix">
+/* FINAL LOCKED LAYOUT FIX — keeps Dashboard and BotnangBot in the top-right header area */
+#dashboardBtn.right-action-btn,
+#botnangBotBtn.right-action-btn,
+#aiInsightsBtn.right-action-btn{
+  position: fixed !important;
+  top: 18px !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: auto !important;
+  min-width: 122px !important;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  line-height: 42px !important;
+  z-index: 100010 !important;
+  transform: none !important;
+}
+#dashboardBtn.right-action-btn{right: 178px !important;background: linear-gradient(135deg,#8B5CF6,#7C3AED) !important;}
+#botnangBotBtn.right-action-btn,#aiInsightsBtn.right-action-btn{right: 26px !important;background: linear-gradient(135deg,#2563EB,#1D4ED8) !important;}
+body.dashboard-open #dashboardBtn,
+body.dashboard-open #botnangBotBtn,
+body.dashboard-open #aiInsightsBtn,
+body.bot-open #dashboardBtn,
+body.bot-open #botnangBotBtn,
+body.bot-open #aiInsightsBtn{
+  top: 18px !important;
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+body.dashboard-open #dashboardBtn{right:178px!important;}
+body.dashboard-open #botnangBotBtn, body.dashboard-open #aiInsightsBtn{right:26px!important;}
+body.bot-open #dashboardBtn{right:178px!important;}
+body.bot-open #botnangBotBtn, body.bot-open #aiInsightsBtn{right:26px!important;}
+
+/* Panel starts under the top header area, not over the buttons */
+#dashboardPanel,
+#botnangBotPanel,
+.botnang-side-panel,
+.side-panel{
+  top: 70px !important;
+  height: calc(100vh - 70px) !important;
+  width: 470px !important;
+  max-width: 470px !important;
+  right: 0 !important;
+}
+#dashboardPanel iframe,
+.botnang-side-panel iframe{
+  height: calc(100% - 52px) !important;
+}
+
+@media(max-width:900px){
+  #dashboardBtn.right-action-btn{right:150px!important;min-width:112px!important;padding:0 12px!important;font-size:12px!important;}
+  #botnangBotBtn.right-action-btn,#aiInsightsBtn.right-action-btn{right:18px!important;min-width:116px!important;padding:0 12px!important;font-size:12px!important;}
+  #dashboardPanel,#botnangBotPanel,.botnang-side-panel,.side-panel{width:92vw!important;max-width:92vw!important;}
+}
+</style>
+
+
+<style id="tayeb-locked-final-real-fix">
+/* LOCKED FINAL FIX: no old left floating buttons, compact dashboard iframe, one clean panel only */
+#dashboardBtn.right-action-btn, #botnangBotBtn.right-action-btn{
+  position:fixed!important; top:18px!important; bottom:auto!important; left:auto!important;
+  height:42px!important; line-height:42px!important; min-width:124px!important; padding:0 16px!important;
+  border-radius:12px!important; font-size:13px!important; z-index:100050!important; transform:none!important;
+}
+#dashboardBtn.right-action-btn{right:178px!important;}
+#botnangBotBtn.right-action-btn{right:26px!important;}
+body.dashboard-open #dashboardBtn, body.dashboard-open #botnangBotBtn,
+body.bot-open #dashboardBtn, body.bot-open #botnangBotBtn{display:none!important;}
+#dashboardPanel.side-panel, #botnangBotPanel.side-panel{
+  position:fixed!important; top:0!important; right:0!important; left:auto!important;
+  width:440px!important; max-width:440px!important; height:100vh!important; z-index:100040!important;
+  background:#071425!important; display:none!important;
+}
+#dashboardPanel.side-panel.is-open, #botnangBotPanel.side-panel.is-open{display:block!important;}
+#dashboardPanel .side-header, #botnangBotPanel .side-header{
+  height:52px!important; background:#071426!important; color:#F8FAFC!important;
+  border-bottom:1px solid rgba(124,58,237,.45)!important;
+}
+@media(max-width:900px){
+  #dashboardBtn.right-action-btn{right:150px!important;}
+  #botnangBotBtn.right-action-btn{right:18px!important;}
+  #dashboardPanel.side-panel,#botnangBotPanel.side-panel{width:68vw!important; max-width:68vw!important; min-width:420px!important;}
+}
+@media(max-width:640px){
+  #dashboardPanel.side-panel,#botnangBotPanel.side-panel{width:100vw!important; max-width:100vw!important; min-width:0!important;}
+}
+</style>
+
+
+<style id="tayeb-visible-top-buttons-final">
+/* Keep the two action buttons visible when a panel is open, and keep panels below them. */
+body.dashboard-open #dashboardBtn.right-action-btn,
+body.dashboard-open #botnangBotBtn.right-action-btn,
+body.bot-open #dashboardBtn.right-action-btn,
+body.bot-open #botnangBotBtn.right-action-btn{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:fixed!important;
+  top:18px!important;
+  bottom:auto!important;
+  left:auto!important;
+  z-index:100080!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+body.dashboard-open #dashboardBtn.right-action-btn,
+body.bot-open #dashboardBtn.right-action-btn{right:178px!important;}
+body.dashboard-open #botnangBotBtn.right-action-btn,
+body.bot-open #botnangBotBtn.right-action-btn{right:26px!important;}
+
+#dashboardPanel.side-panel,
+#botnangBotPanel.side-panel{
+  top:74px!important;
+  height:calc(100vh - 74px)!important;
+  z-index:100040!important;
+}
+#dashboardPanel iframe,
+#botnangBotPanel iframe{
+  height:calc(100% - 52px)!important;
+}
+@media(max-width:900px){
+  body.dashboard-open #dashboardBtn.right-action-btn,
+  body.bot-open #dashboardBtn.right-action-btn{right:150px!important;}
+  body.dashboard-open #botnangBotBtn.right-action-btn,
+  body.bot-open #botnangBotBtn.right-action-btn{right:18px!important;}
+}
+</style>
+<link rel="stylesheet" href="css/botnang_ai_chatbot.css">
+<link rel="stylesheet" href="css/botnang_ai_chatbot_natural_extra.css">
+
+<style id="botnang-bot-popup-zindex-fix">
+/* Keep BotnangBot popups above highlighted buildings. */
+.leaflet-popup-pane { z-index: 1200 !important; }
+.leaflet-tooltip-pane { z-index: 1190 !important; }
+</style>
+
+<style id="botnang-popup-above-highlight-v3">
+.leaflet-popup-pane { z-index: 10000 !important; }
+.leaflet-popup { z-index: 10001 !important; }
+</style>
+</head>
+    <body>
+        <div id="map">
+        </div>
+
+        <button id="dashboardBtn" class="right-action-btn" type="button">📊 Dashboard</button>
+        <button id="botnangBotBtn" class="right-action-btn" type="button">🤖 BotnangBot</button>
+
+        <div id="dashboardPanel" class="side-panel" aria-hidden="true">
+            <div class="side-header">
+                <span>📊 Botnang Dashboard</span>
+                <button id="closeDashboard" class="side-close" type="button" aria-label="Close dashboard">×</button>
+            </div>
+            <iframe src="dashboard.html" title="Botnang Dashboard" style="width:100%; height:calc(100% - 52px); border:0; display:block; background:#071425;"></iframe>
+        </div>
+
+        <div id="botnangBotPanel" class="side-panel" aria-hidden="true">
+            <div class="side-header">
+                <span>🤖 BotnangBot</span>
+                <button id="closeBotnangBot" class="side-close" type="button" aria-label="Close BotnangBot">×</button>
+            </div>
+            <div class="side-content">
+                <div class="side-card">
+                    <div class="mini-title">BotnangBot placeholder</div>
+                    The AI chatbot section will be connected later to the PostgreSQL schema <b>botnang_bot</b>. No scripted AI questions are included in this version.
+                </div>
+            </div>
+        </div>
+
+        <div class="title-card">
+            <div class="title-row">
+                <div>
+                    <h1>AI-Assisted Botnang Population & Housing WebGIS</h1>
+                    <p>Building-level population estimation, building types, density heatmap, and Botnang boundary.</p>
+                </div>
+                <button id="toggleMainPanel" class="title-toggle-btn" type="button" title="Show/hide controls">‹</button>
+            </div>
+
+            <div class="left-panel" id="leftPanel">
+                <div class="scenario-card">
+                    <div class="mini-title">Scenario & year</div>
+                    <label>Population scenario</label>
+                    <div class="scenario-buttons" id="scenarioButtons">
+                        <button type="button" data-scenario="baseline" class="active">Baseline</button>
+                        <button type="button" data-scenario="growth">Growth</button>
+                        <button type="button" data-scenario="decline">Decline</button>
+                    </div>
+                    <div class="scenario-note" id="scenarioNote">
+                        Historical years use official KOMUNIS values. Future years use simple planning scenarios.
+                    </div>
+
+                    <label for="yearSlider">Year</label>
+                    <div class="year-slider-card">
+                        <div class="year-slider-row">
+                            <span id="yearMinLabel">2007</span>
+                            <input id="yearSlider" type="range" min="0" max="7" step="1" value="4" aria-label="Year slider">
+                            <span id="yearMaxLabel">2040</span>
+                            <span id="yearCurrent" class="year-current-pill">2025</span>
+                        </div>
+                    </div>
+
+                    <button id="applyScenario" class="primary-btn" type="button">Apply scenario filter</button>
+                </div>
+
+                <div class="stats-card" id="scenarioStatsBox">
+                    <div class="mini-title">Selected project data</div>
+                    Latest population: <b>12,669</b> residents in <b>2025</b><br>
+                    Residential buildings: <b>2,197</b><br>
+                    Building types layer: <b>Church, Hospital, Market, School, Other</b>
+                </div>
+
+                <div class="feature-card">
+                    <div class="mini-title">Features</div>
+                    <div class="layer-group-card">
+                        <label class="layer-parent-row"><input id="toggleBuildingsGroup" type="checkbox" checked><span>Buildings</span></label>
+                        <div class="sub-toggle-list">
+                            <label class="toggle-row"><input id="toggleResidential" type="checkbox" checked><span>Residential</span></label>
+                            <label class="toggle-row"><input id="toggleChurch" type="checkbox" checked><span>Church</span></label>
+                            <label class="toggle-row"><input id="toggleHospital" type="checkbox" checked><span>Hospital</span></label>
+                            <label class="toggle-row"><input id="toggleMarket" type="checkbox" checked><span>Market</span></label>
+                            <label class="toggle-row"><input id="toggleOtherBuildings" type="checkbox" checked><span>Other</span></label>
+                            <label class="toggle-row"><input id="toggleSchool" type="checkbox" checked><span>School</span></label>
+                        </div>
+                    </div>
+                    <label class="toggle-row"><input id="toggleHeatmap" type="checkbox" checked><span>Population Density Heatmap</span></label>
+                    <label class="toggle-row"><input id="toggleBoundary" type="checkbox" checked><span>Botnang Boundary</span></label>
+                    <label class="toggle-row"><input id="toggleOSM" type="checkbox" checked><span>OSM Basemap</span></label>
+                </div>
+
+                <div class="legend-card-inner">
+                    <div class="mini-title">Legend</div>
+                    <div id="dynamicLegend"></div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/proj4.js"></script>
+        <script src="js/proj4leaflet.js"></script>
+        <script src="data/BotnangBoundary_2.js"></script>
+        <script src="data/BuildingTypes_3.js"></script>
+        <script src="data/ResidentialBuildingPopulation_4.js"></script>
+        <script>
+        // Use default Leaflet CRS (EPSG:3857) so web tile basemaps load correctly.
+        // The exported vector layers and heatmap bounds are already in latitude/longitude.
+        var map = L.map('map', {
+            zoomControl:false,
+            maxZoom:20,
+            minZoom:1
+        }).fitBounds([[48.76342338087402,9.094501508208205],[48.79598836704986,9.15596221482414]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        // Keep BotnangBot popups above highlighted buildings and all building layers.
+        if (map.getPane('popupPane')) {
+            map.getPane('popupPane').style.zIndex = 1200;
+        }
+
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            map.setMaxBounds(map.getBounds());
+            map.setMinZoom(map.getZoom());
+        }
+        map.createPane('pane_OSMBasemap_0');
+        map.getPane('pane_OSMBasemap_0').style.zIndex = 400;
+        var layer_OSMBasemap_0 = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            pane: 'pane_OSMBasemap_0',
+            opacity: 1.0,
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: ['a','b','c','d'],
+            minZoom: 1,
+            maxZoom: 20,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMBasemap_0;
+        map.addLayer(layer_OSMBasemap_0);
+        map.createPane('pane_PopulationDensityHeatmap_1');
+        map.getPane('pane_PopulationDensityHeatmap_1').style.zIndex = 401;
+        var img_PopulationDensityHeatmap_1 = 'data/PopulationDensityHeatmap_1.png';
+        var img_bounds_PopulationDensityHeatmap_1 = [[48.768849338884266,9.10951809226919],[48.78858346188155,9.140057150675498]];
+        var layer_PopulationDensityHeatmap_1 = new L.imageOverlay(img_PopulationDensityHeatmap_1,
+                                              img_bounds_PopulationDensityHeatmap_1,
+                                              {pane: 'pane_PopulationDensityHeatmap_1'});
+        bounds_group.addLayer(layer_PopulationDensityHeatmap_1);
+        map.addLayer(layer_PopulationDensityHeatmap_1);
+        function pop_BotnangBoundary_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">osm_id</th>\
+                        <td class="visible-with-data" id="osm_id">' + (feature.properties['osm_id'] !== null ? autolinker.link(String(feature.properties['osm_id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">code</th>\
+                        <td class="visible-with-data" id="code">' + (feature.properties['code'] !== null ? autolinker.link(String(feature.properties['code']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">fclass</th>\
+                        <td class="visible-with-data" id="fclass">' + (feature.properties['fclass'] !== null ? autolinker.link(String(feature.properties['fclass']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>name</strong><br />' + (feature.properties['name'] !== null ? autolinker.link(String(feature.properties['name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_BotnangBoundary_2_0() {
+            return {
+                pane: 'pane_BotnangBoundary_2',
+                opacity: 1,
+                color: 'rgba(196,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 6.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_BotnangBoundary_2');
+        map.getPane('pane_BotnangBoundary_2').style.zIndex = 402;
+        map.getPane('pane_BotnangBoundary_2').style['mix-blend-mode'] = 'normal';
+        var layer_BotnangBoundary_2 = new L.geoJson(json_BotnangBoundary_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_BotnangBoundary_2',
+            layerName: 'layer_BotnangBoundary_2',
+            pane: 'pane_BotnangBoundary_2',
+            onEachFeature: pop_BotnangBoundary_2,
+            style: style_BotnangBoundary_2_0,
+        });
+        bounds_group.addLayer(layer_BotnangBoundary_2);
+        map.addLayer(layer_BotnangBoundary_2);
+        function pop_BuildingTypes_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">building_group</th>\
+                        <td class="visible-with-data" id="building_group">' + (feature.properties['building_group'] !== null ? autolinker.link(String(feature.properties['building_group']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">gebaeudefunktion</th>\
+                        <td class="visible-with-data" id="gebaeudefunktion">' + (feature.properties['gebaeudefunktion'] !== null ? autolinker.link(String(feature.properties['gebaeudefunktion']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['area_m2'] !== null ? autolinker.link(String(feature.properties['area_m2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['population_year'] !== null ? autolinker.link(String(feature.properties['population_year']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['population_estimated'] !== null ? autolinker.link(String(feature.properties['population_estimated']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['building_category'] !== null ? autolinker.link(String(feature.properties['building_category']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_BuildingTypes_3_0(feature) {
+            switch(String(feature.properties['building_category'])) {
+                case 'Church':
+                    return {
+                pane: 'pane_BuildingTypes_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(93,37,166,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hospital':
+                    return {
+                pane: 'pane_BuildingTypes_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(77,198,73,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Market':
+                    return {
+                pane: 'pane_BuildingTypes_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,242,233,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Other':
+                    return {
+                pane: 'pane_BuildingTypes_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(70,115,227,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'School':
+                    return {
+                pane: 'pane_BuildingTypes_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(68,244,243,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_BuildingTypes_3');
+        map.getPane('pane_BuildingTypes_3').style.zIndex = 403;
+        map.getPane('pane_BuildingTypes_3').style['mix-blend-mode'] = 'normal';
+        var layer_BuildingTypes_3 = new L.geoJson(json_BuildingTypes_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_BuildingTypes_3',
+            layerName: 'layer_BuildingTypes_3',
+            pane: 'pane_BuildingTypes_3',
+            onEachFeature: pop_BuildingTypes_3,
+            style: style_BuildingTypes_3_0,
+        });
+        bounds_group.addLayer(layer_BuildingTypes_3);
+        map.addLayer(layer_BuildingTypes_3);
+
+        // Split Building Types into separate toggleable category layers while keeping one source dataset.
+        var buildingTypeCategories = ['Church', 'Hospital', 'Market', 'Other', 'School'];
+        var buildingCategoryLayers = {};
+        var buildingCategoryToggleIds = {
+            'Church': 'toggleChurch',
+            'Hospital': 'toggleHospital',
+            'Market': 'toggleMarket',
+            'Other': 'toggleOtherBuildings',
+            'School': 'toggleSchool'
+        };
+        function createBuildingCategoryLayers() {
+            if (Object.keys(buildingCategoryLayers).length) return;
+            if (typeof layer_BuildingTypes_3 !== 'undefined' && map.hasLayer(layer_BuildingTypes_3)) {
+                map.removeLayer(layer_BuildingTypes_3);
+            }
+            buildingTypeCategories.forEach(function(category) {
+                var filteredFeatures = (json_BuildingTypes_3.features || []).filter(function(feature) {
+                    return String(feature.properties['building_category']) === category;
+                });
+                buildingCategoryLayers[category] = new L.geoJson({
+                    type: 'FeatureCollection',
+                    features: filteredFeatures
+                }, {
+                    attribution: '',
+                    interactive: true,
+                    dataVar: 'json_BuildingTypes_3_' + category,
+                    layerName: 'layer_BuildingTypes_3_' + category,
+                    pane: 'pane_BuildingTypes_3',
+                    onEachFeature: pop_BuildingTypes_3,
+                    style: style_BuildingTypes_3_0
+                });
+                map.addLayer(buildingCategoryLayers[category]);
+            });
+        }
+        function isBuildingCategoryVisible(category) {
+            return !!(buildingCategoryLayers[category] && map.hasLayer(buildingCategoryLayers[category]));
+        }
+        function setBuildingCategoryVisible(category, visible) {
+            createBuildingCategoryLayers();
+            var layer = buildingCategoryLayers[category];
+            if (!layer) return;
+            if (visible) {
+                if (!map.hasLayer(layer)) map.addLayer(layer);
+            } else {
+                if (map.hasLayer(layer)) map.removeLayer(layer);
+            }
+            syncTogglesAndLegend();
+        }
+
+        /* ===== Scenario/year logic for current project (no scripted AI questions) ===== */
+        var botnangPopulationByYear = {
+            2007: 12838,
+            2008: 12813,
+            2009: 12638,
+            2010: 12696,
+            2011: 12685,
+            2012: 12703,
+            2013: 12777,
+            2014: 12783,
+            2015: 13062,
+            2016: 13115,
+            2017: 13086,
+            2018: 13120,
+            2019: 13102,
+            2020: 13108,
+            2021: 12824,
+            2022: 12830,
+            2023: 12832,
+            2024: 12732,
+            2025: 12669
+        };
+        var botnangScenarioYears = [2007, 2010, 2015, 2020, 2025, 2030, 2035, 2040];
+        var botnangScenarioState = {
+            scenario: 'baseline',
+            year: 2025
+        };
+
+        // Scientific scenario rates derived from Botnang's historical annual population variability.
+// Annual growth rate = (Population_t / Population_t-1) - 1
+// Baseline = average annual growth = -0.0700%
+// Growth = average + standard deviation = 0.8048%
+// Decline = average - standard deviation = -0.9448%
+        function scenarioRate(scenario) {
+            if (scenario === 'growth') return 0.0080481735950388;
+            if (scenario === 'decline') return -0.0094476851664992;
+            return -0.0006997557857302;
+        }
+
+        function scenarioLabel() {
+            if (botnangScenarioState.year <= 2025) return 'Observed';
+            if (botnangScenarioState.scenario === 'growth') return 'Growth';
+            if (botnangScenarioState.scenario === 'decline') return 'Decline';
+            return 'Baseline';
+        }
+
+        function getScenarioPopulationTotal(year, scenario) {
+            year = Number(year);
+            if (botnangPopulationByYear[year]) return botnangPopulationByYear[year];
+            var basePopulation = botnangPopulationByYear[2025];
+            var yearsAfterBase = year - 2025;
+            return Math.round(basePopulation * Math.pow(1 + scenarioRate(scenario), yearsAfterBase));
+        }
+
+        function getScenarioFactor() {
+            var basePopulation = botnangPopulationByYear[2025];
+            return getScenarioPopulationTotal(botnangScenarioState.year, botnangScenarioState.scenario) / basePopulation;
+        }
+
+        function getResidentialBaseValue(feature) {
+            return Number(feature && feature.properties ? feature.properties['population_estimated'] : 0) || 0;
+        }
+
+        function getResidentialScenarioValue(feature) {
+            return getResidentialBaseValue(feature) * getScenarioFactor();
+        }
+
+        function formatBotnangNumber(value, decimals) {
+            if (value === null || value === undefined || isNaN(Number(value))) return '—';
+            return Number(value).toLocaleString(undefined, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function buildResidentialScenarioPopup(feature) {
+            var baseValue = getResidentialBaseValue(feature);
+            var scenarioValue = getResidentialScenarioValue(feature);
+            var area = feature.properties['area_m2'];
+            return '<table>' +
+                '<tr><td colspan="2"><strong>Residential building</strong></td></tr>' +
+                '<tr><th scope="row">Scenario</th><td>' + scenarioLabel() + '</td></tr>' +
+                '<tr><th scope="row">Year</th><td>' + botnangScenarioState.year + '</td></tr>' +
+                '<tr><th scope="row">Area (m²)</th><td>' + formatBotnangNumber(area, 2) + '</td></tr>' +
+                '<tr><th scope="row">Estimated population</th><td>' + formatBotnangNumber(scenarioValue, 2) + '</td></tr>' +
+                '<tr><th scope="row">2025 base value</th><td>' + formatBotnangNumber(baseValue, 2) + '</td></tr>' +
+                '</table>';
+        }
+
+        function refreshResidentialScenarioPopups() {
+            if (typeof layer_ResidentialBuildingPopulation_4 === 'undefined') return;
+            layer_ResidentialBuildingPopulation_4.eachLayer(function(layer) {
+                if (!layer.feature) return;
+                layer.unbindPopup();
+                layer.bindPopup(function() {
+                    return buildResidentialScenarioPopup(layer.feature);
+                }, { maxHeight: 400 });
+            });
+        }
+
+        function updateResidentialScenarioLayer() {
+            if (typeof layer_ResidentialBuildingPopulation_4 !== 'undefined') {
+                layer_ResidentialBuildingPopulation_4.setStyle(style_ResidentialBuildingPopulation_4_0);
+                refreshResidentialScenarioPopups();
+            }
+            updateScenarioStats();
+            syncTogglesAndLegend();
+        }
+
+        function updateScenarioStats() {
+            var box = document.getElementById('scenarioStatsBox');
+            if (!box) return;
+
+            var residentialCount = 0;
+            var totalArea = 0;
+            var totalPopulation = 0;
+            if (typeof json_ResidentialBuildingPopulation_4 !== 'undefined' && json_ResidentialBuildingPopulation_4.features) {
+                json_ResidentialBuildingPopulation_4.features.forEach(function(feature) {
+                    residentialCount += 1;
+                    totalArea += Number(feature.properties['area_m2'] || 0);
+                    totalPopulation += getResidentialScenarioValue(feature);
+                });
+            }
+
+            var selectedTotal = getScenarioPopulationTotal(botnangScenarioState.year, botnangScenarioState.scenario);
+            var note = botnangScenarioState.year <= 2025
+                ? 'Observed KOMUNIS population year'
+                : 'Planning scenario estimate';
+
+            box.innerHTML =
+                '<div class="mini-title">Selected scenario</div>' +
+                '<b>' + scenarioLabel() + '</b> / <b>' + botnangScenarioState.year + '</b><br>' +
+                note + '<br>' +
+                '<div class="scenario-summary-grid">' +
+                    '<div class="scenario-summary-item"><b>' + formatBotnangNumber(selectedTotal, 0) + '</b>Total population</div>' +
+                    '<div class="scenario-summary-item"><b>' + formatBotnangNumber(residentialCount, 0) + '</b>Residential buildings</div>' +
+                    '<div class="scenario-summary-item"><b>' + formatBotnangNumber(totalPopulation, 0) + '</b>Allocated population</div>' +
+                    '<div class="scenario-summary-item"><b>' + formatBotnangNumber(totalArea, 0) + '</b>Total area m²</div>' +
+                '</div>';
+        }
+
+        function initScenarioControls() {
+            var slider = document.getElementById('yearSlider');
+            var currentYear = document.getElementById('yearCurrent');
+            var minLabel = document.getElementById('yearMinLabel');
+            var maxLabel = document.getElementById('yearMaxLabel');
+            var scenarioNote = document.getElementById('scenarioNote');
+
+            if (slider) {
+                slider.min = 0;
+                slider.max = botnangScenarioYears.length - 1;
+                slider.value = botnangScenarioYears.indexOf(2025);
+                if (minLabel) minLabel.textContent = botnangScenarioYears[0];
+                if (maxLabel) maxLabel.textContent = botnangScenarioYears[botnangScenarioYears.length - 1];
+                if (currentYear) currentYear.textContent = botnangScenarioState.year;
+
+                slider.addEventListener('input', function() {
+                    botnangScenarioState.year = botnangScenarioYears[Number(slider.value)];
+                    if (currentYear) currentYear.textContent = botnangScenarioState.year;
+                    if (scenarioNote) {
+                        scenarioNote.textContent = botnangScenarioState.year <= 2025
+                            ? 'Historical year: official KOMUNIS total population is used. Scenario buttons do not change historical values.'
+                            : 'Future year: scenarios are statistically derived from historical variability.';
+                    }
+                    updateResidentialScenarioLayer();
+                });
+            }
+
+            document.querySelectorAll('#scenarioButtons button').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('#scenarioButtons button').forEach(function(b) { b.classList.remove('active'); });
+                    button.classList.add('active');
+                    botnangScenarioState.scenario = button.getAttribute('data-scenario') || 'baseline';
+                    updateResidentialScenarioLayer();
+                });
+            });
+
+            var applyBtn = document.getElementById('applyScenario');
+            if (applyBtn) applyBtn.addEventListener('click', updateResidentialScenarioLayer);
+            updateScenarioStats();
+        }
+
+
+        function pop_ResidentialBuildingPopulation_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['building_group'] !== null ? autolinker.link(String(feature.properties['building_group']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['gebaeudefunktion'] !== null ? autolinker.link(String(feature.properties['gebaeudefunktion']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">area_m2</th>\
+                        <td class="visible-with-data" id="area_m2">' + (feature.properties['area_m2'] !== null ? autolinker.link(String(feature.properties['area_m2']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">population_year</th>\
+                        <td class="visible-with-data" id="population_year">' + (feature.properties['population_year'] !== null ? autolinker.link(String(feature.properties['population_year']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">population_estimated</th>\
+                        <td class="visible-with-data" id="population_estimated">' + (feature.properties['population_estimated'] !== null ? autolinker.link(String(feature.properties['population_estimated']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_ResidentialBuildingPopulation_4_0(feature) {
+            var value = getResidentialScenarioValue(feature);
+            var fillColor = 'rgba(255,255,178,1.0)';
+            if (value >= 7.207740) {
+                fillColor = 'rgba(189,0,38,1.0)';
+            } else if (value >= 5.466580) {
+                fillColor = 'rgba(240,59,32,1.0)';
+            } else if (value >= 4.248700) {
+                fillColor = 'rgba(253,141,60,1.0)';
+            } else if (value >= 3.183000) {
+                fillColor = 'rgba(254,204,92,1.0)';
+            }
+            return {
+                pane: 'pane_ResidentialBuildingPopulation_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: fillColor,
+                interactive: true
+            };
+        }
+        map.createPane('pane_ResidentialBuildingPopulation_4');
+        map.getPane('pane_ResidentialBuildingPopulation_4').style.zIndex = 404;
+        map.getPane('pane_ResidentialBuildingPopulation_4').style['mix-blend-mode'] = 'normal';
+        var layer_ResidentialBuildingPopulation_4 = new L.geoJson(json_ResidentialBuildingPopulation_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_ResidentialBuildingPopulation_4',
+            layerName: 'layer_ResidentialBuildingPopulation_4',
+            pane: 'pane_ResidentialBuildingPopulation_4',
+            onEachFeature: pop_ResidentialBuildingPopulation_4,
+            style: style_ResidentialBuildingPopulation_4_0,
+        });
+        bounds_group.addLayer(layer_ResidentialBuildingPopulation_4);
+        map.addLayer(layer_ResidentialBuildingPopulation_4);
+        const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
+        "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
+        var photonControl = L.control.photon({
+            url: url["Nominatim OSM"],
+            feedbackLabel: '',
+            position: 'topleft',
+            includePosition: true,
+            initial: true,
+            // resultsHandler: myHandler,
+        }).addTo(map);
+        photonControl._container.childNodes[0].style.borderRadius="10px"
+        // Create a variable to store the geoJSON data
+        var x = null;
+        // Create a variable to store the marker
+        var marker = null;
+        // Add an event listener to the Photon control to create a marker from the returned geoJSON data
+        var z = null;
+        photonControl.on('selected', function(e) {
+            console.log(photonControl.search.resultsContainer);
+            if (x != null) {
+                map.removeLayer(obj3.marker);
+                map.removeLayer(x);
+            }
+            obj2.gcd = e.choice;
+            x = L.geoJSON(obj2.gcd).addTo(map);
+            var label = typeof obj2.gcd.properties.label === 'undefined' ? obj2.gcd.properties.display_name : obj2.gcd.properties.label;
+            obj3.marker = L.marker(x.getLayers()[0].getLatLng()).bindPopup(label).addTo(map);
+            map.setView(x.getLayers()[0].getLatLng(), 17);
+            z = typeof e.choice.properties.label === 'undefined'? e.choice.properties.display_name : e.choice.properties.label;
+            console.log(e);
+            e.target.input.value = z;
+        });
+        var search = document.getElementsByClassName("leaflet-photon leaflet-control")[0];
+        search.classList.add("leaflet-control-search")
+        search.style.display = "flex";
+        search.style.backgroundColor="rgba(255,255,255,0.5)" 
+
+        // Create the new button element
+        var button = document.createElement("div");
+        button.id = "gcd-button-control";
+        button.className = "gcd-gl-btn fa fa-search search-button";
+
+        // Insert the button at the beginning of the search control
+        search.insertBefore(button, search.firstChild);
+        last = search.lastChild;
+        last.style.display = "none";
+        button.addEventListener("click", function (e) {
+            if (last.style.display === "none") {
+                last.style.display = "block";
+            } else {
+                last.style.display = "none";
+            }
+        });
+        var overlaysTree = [
+            {label: 'Residential<br /><table><tr><td style="text-align: center;"><img src="legend/ResidentialBuildingPopulation_4_VeryLow0.png" /></td><td>Very Low</td></tr><tr><td style="text-align: center;"><img src="legend/ResidentialBuildingPopulation_4_Low1.png" /></td><td>Low</td></tr><tr><td style="text-align: center;"><img src="legend/ResidentialBuildingPopulation_4_Medium2.png" /></td><td>Medium</td></tr><tr><td style="text-align: center;"><img src="legend/ResidentialBuildingPopulation_4_High3.png" /></td><td>High</td></tr><tr><td style="text-align: center;"><img src="legend/ResidentialBuildingPopulation_4_VeryHigh4.png" /></td><td>Very High</td></tr></table>', layer: layer_ResidentialBuildingPopulation_4},
+            {label: 'Building Types<br /><table><tr><td style="text-align: center;"><img src="legend/BuildingTypes_3_Church0.png" /></td><td>Church</td></tr><tr><td style="text-align: center;"><img src="legend/BuildingTypes_3_Hospital1.png" /></td><td>Hospital</td></tr><tr><td style="text-align: center;"><img src="legend/BuildingTypes_3_Market2.png" /></td><td>Market</td></tr><tr><td style="text-align: center;"><img src="legend/BuildingTypes_3_Other3.png" /></td><td>Other</td></tr><tr><td style="text-align: center;"><img src="legend/BuildingTypes_3_School4.png" /></td><td>School</td></tr></table>', layer: layer_BuildingTypes_3},
+            {label: '<img src="legend/BotnangBoundary_2.png" /> Botnang Boundary', layer: layer_BotnangBoundary_2},
+            {label: "Population Density Heatmap", layer: layer_PopulationDensityHeatmap_1},
+            {label: "OSM Basemap", layer: layer_OSMBasemap_0, radioGroup: 'bm' },]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        
+        // ===== Botnang final UI controls - visual only, no scripted AI questions =====
+        function setLayerVisible(layer, visible) {
+            if (!layer) return;
+            if (visible) {
+                if (!map.hasLayer(layer)) map.addLayer(layer);
+            } else {
+                if (map.hasLayer(layer)) map.removeLayer(layer);
+            }
+            syncTogglesAndLegend();
+        }
+
+        function isLayerVisible(layer) {
+            return layer && map.hasLayer(layer);
+        }
+
+        function setChecked(id, checked) {
+            var el = document.getElementById(id);
+            if (el) el.checked = !!checked;
+        }
+
+        function renderLegendSection(title, rows) {
+            var html = '<div class="legend-section-title">' + title + '</div>';
+            rows.forEach(function(row) {
+                html += '<div class="legend-row">' + row[0] + '<span>' + row[1] + '</span></div>';
+            });
+            return html;
+        }
+
+        function updateCustomLegend() {
+            var el = document.getElementById('dynamicLegend');
+            if (!el) return;
+            var html = '';
+            var buildingRows = '';
+
+            if (isLayerVisible(typeof layer_ResidentialBuildingPopulation_4 !== 'undefined' ? layer_ResidentialBuildingPopulation_4 : null)) {
+                buildingRows += '<div class="legend-subtitle">Residential population</div>';
+                buildingRows += [
+                    '<div class="legend-row"><span class="legend-color" style="background:#ffffb2"></span><span>Very Low</span></div>',
+                    '<div class="legend-row"><span class="legend-color" style="background:#fecc5c"></span><span>Low</span></div>',
+                    '<div class="legend-row"><span class="legend-color" style="background:#fd8d3c"></span><span>Medium</span></div>',
+                    '<div class="legend-row"><span class="legend-color" style="background:#f03b20"></span><span>High</span></div>',
+                    '<div class="legend-row"><span class="legend-color" style="background:#bd0026"></span><span>Very High</span></div>'
+                ].join('');
+            }
+
+            var buildingTypeLegendRows = [];
+            if (isBuildingCategoryVisible('Church')) buildingTypeLegendRows.push(['#5d25a6', 'Church']);
+            if (isBuildingCategoryVisible('Hospital')) buildingTypeLegendRows.push(['#4dc649', 'Hospital']);
+            if (isBuildingCategoryVisible('Market')) buildingTypeLegendRows.push(['#d3f2e9', 'Market']);
+            if (isBuildingCategoryVisible('Other')) buildingTypeLegendRows.push(['#4673e3', 'Other']);
+            if (isBuildingCategoryVisible('School')) buildingTypeLegendRows.push(['#44f4f3', 'School']);
+            if (buildingTypeLegendRows.length) {
+                buildingRows += '<div class="legend-subtitle">Building types</div>';
+                buildingTypeLegendRows.forEach(function(row) {
+                    buildingRows += '<div class="legend-row"><span class="legend-color" style="background:' + row[0] + '"></span><span>' + row[1] + '</span></div>';
+                });
+            }
+
+            if (buildingRows) {
+                html += '<div class="legend-section-title">Buildings</div>' + buildingRows;
+            }
+
+            if (isLayerVisible(typeof layer_PopulationDensityHeatmap_1 !== 'undefined' ? layer_PopulationDensityHeatmap_1 : null)) {
+                html += '<div class="legend-section-title">Population density heatmap</div>' +
+                        '<div class="legend-gradient"></div>' +
+                        '<div class="legend-row" style="justify-content:space-between"><span>Low</span><span>High</span></div>';
+            }
+
+            if (isLayerVisible(typeof layer_BotnangBoundary_2 !== 'undefined' ? layer_BotnangBoundary_2 : null)) {
+                html += renderLegendSection('Boundary', [
+                    ['<span class="legend-line"></span>', 'Botnang Boundary']
+                ]);
+            }
+
+            if (!html) {
+                html = '<div class="legend-row">No active thematic layer.</div>';
+            }
+            el.innerHTML = html;
+        }
+
+        function syncBuildingsGroupCheckbox() {
+            var parent = document.getElementById('toggleBuildingsGroup');
+            if (!parent) return;
+            var checks = [
+                isLayerVisible(typeof layer_ResidentialBuildingPopulation_4 !== 'undefined' ? layer_ResidentialBuildingPopulation_4 : null),
+                isBuildingCategoryVisible('Church'),
+                isBuildingCategoryVisible('Hospital'),
+                isBuildingCategoryVisible('Market'),
+                isBuildingCategoryVisible('Other'),
+                isBuildingCategoryVisible('School')
+            ];
+            var allOn = checks.every(Boolean);
+            var someOn = checks.some(Boolean);
+            parent.checked = allOn;
+            parent.indeterminate = someOn && !allOn;
+        }
+
+        function syncTogglesAndLegend() {
+            createBuildingCategoryLayers();
+            setChecked('toggleResidential', isLayerVisible(typeof layer_ResidentialBuildingPopulation_4 !== 'undefined' ? layer_ResidentialBuildingPopulation_4 : null));
+            setChecked('toggleChurch', isBuildingCategoryVisible('Church'));
+            setChecked('toggleHospital', isBuildingCategoryVisible('Hospital'));
+            setChecked('toggleMarket', isBuildingCategoryVisible('Market'));
+            setChecked('toggleOtherBuildings', isBuildingCategoryVisible('Other'));
+            setChecked('toggleSchool', isBuildingCategoryVisible('School'));
+            setChecked('toggleHeatmap', isLayerVisible(typeof layer_PopulationDensityHeatmap_1 !== 'undefined' ? layer_PopulationDensityHeatmap_1 : null));
+            setChecked('toggleBoundary', isLayerVisible(typeof layer_BotnangBoundary_2 !== 'undefined' ? layer_BotnangBoundary_2 : null));
+            setChecked('toggleOSM', isLayerVisible(typeof layer_OSMBasemap_0 !== 'undefined' ? layer_OSMBasemap_0 : null));
+            syncBuildingsGroupCheckbox();
+            updateCustomLegend();
+        }
+
+        function bindLayerToggle(id, layer) {
+            var el = document.getElementById(id);
+            if (!el || !layer) return;
+            el.checked = map.hasLayer(layer);
+            el.addEventListener('change', function () {
+                setLayerVisible(layer, el.checked);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initScenarioControls();
+            refreshResidentialScenarioPopups();
+            createBuildingCategoryLayers();
+            bindLayerToggle('toggleResidential', typeof layer_ResidentialBuildingPopulation_4 !== 'undefined' ? layer_ResidentialBuildingPopulation_4 : null);
+            buildingTypeCategories.forEach(function(category) {
+                var el = document.getElementById(buildingCategoryToggleIds[category]);
+                if (el) {
+                    el.checked = isBuildingCategoryVisible(category);
+                    el.addEventListener('change', function() {
+                        setBuildingCategoryVisible(category, el.checked);
+                    });
+                }
+            });
+            var buildingsGroupToggle = document.getElementById('toggleBuildingsGroup');
+            if (buildingsGroupToggle) {
+                buildingsGroupToggle.addEventListener('change', function() {
+                    setLayerVisible(layer_ResidentialBuildingPopulation_4, buildingsGroupToggle.checked);
+                    buildingTypeCategories.forEach(function(category) {
+                        setBuildingCategoryVisible(category, buildingsGroupToggle.checked);
+                    });
+                });
+            }
+            bindLayerToggle('toggleHeatmap', typeof layer_PopulationDensityHeatmap_1 !== 'undefined' ? layer_PopulationDensityHeatmap_1 : null);
+            bindLayerToggle('toggleBoundary', typeof layer_BotnangBoundary_2 !== 'undefined' ? layer_BotnangBoundary_2 : null);
+            bindLayerToggle('toggleOSM', typeof layer_OSMBasemap_0 !== 'undefined' ? layer_OSMBasemap_0 : null);
+
+            map.on('overlayadd overlayremove layeradd layerremove baselayerchange', function() {
+                setTimeout(syncTogglesAndLegend, 0);
+            });
+            syncTogglesAndLegend();
+
+            var toggleMain = document.getElementById('toggleMainPanel');
+            if (toggleMain) {
+                toggleMain.addEventListener('click', function () {
+                    document.body.classList.toggle('left-panel-hidden');
+                });
+            }
+
+            function openPanel(panelId) {
+                ['dashboardPanel', 'botnangBotPanel'].forEach(function(id) {
+                    var panel = document.getElementById(id);
+                    if (panel) {
+                        panel.classList.remove('is-open');
+                        panel.setAttribute('aria-hidden', 'true');
+                    }
+                });
+                document.body.classList.remove('dashboard-open', 'bot-open');
+                var panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.add('is-open');
+                    panel.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add(panelId === 'dashboardPanel' ? 'dashboard-open' : 'bot-open');
+                }
+            }
+
+            function closePanel(panelId) {
+                var panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.remove('is-open');
+                    panel.setAttribute('aria-hidden', 'true');
+                }
+                document.body.classList.remove('dashboard-open', 'bot-open');
+            }
+
+            var dashboardBtn = document.getElementById('dashboardBtn');
+            var botBtn = document.getElementById('botnangBotBtn');
+            var closeDashboard = document.getElementById('closeDashboard');
+            var closeBotnangBot = document.getElementById('closeBotnangBot');
+
+            if (dashboardBtn) dashboardBtn.addEventListener('click', function(){ openPanel('dashboardPanel'); });
+            if (botBtn) botBtn.addEventListener('click', function(){ openPanel('botnangBotPanel'); });
+            if (closeDashboard) closeDashboard.addEventListener('click', function(){ closePanel('dashboardPanel'); });
+            if (closeBotnangBot) closeBotnangBot.addEventListener('click', function(){ closePanel('botnangBotPanel'); });
+
+            // Start with optional layers on, matching the exported map.
+            var heatmap = document.getElementById('toggleHeatmap');
+            if (heatmap) heatmap.checked = (typeof layer_PopulationDensityHeatmap_1 !== 'undefined' && map.hasLayer(layer_PopulationDensityHeatmap_1));
+
+            setTimeout(function() {
+                map.invalidateSize();
+                if (typeof layer_OSMBasemap_0 !== 'undefined' && !map.hasLayer(layer_OSMBasemap_0)) {
+                    map.addLayer(layer_OSMBasemap_0);
+                }
+                updateResidentialScenarioLayer();
+                syncTogglesAndLegend();
+            }, 300);
+        });
+
+</script>
+
+<script>
+/* BotnangBot map zoom support for direct PostgreSQL building answers.
+   When the backend returns a `zoom_to` GeoJSON feature, this highlights the building,
+   zooms to it, and opens a popup. */
+(function () {
+    var botBuildingHighlightLayer = null;
+
+    function formatNumber(value, digits) {
+        var number = Number(value);
+        if (!isFinite(number)) return String(value || 'N/A');
+        return number.toFixed(digits);
+    }
+
+    window.zoomToBotBuilding = function (feature) {
+        if (!feature || !feature.geometry || typeof L === 'undefined' || typeof map === 'undefined') {
+            return;
+        }
+
+        if (map.getPane && map.getPane('popupPane')) {
+            map.getPane('popupPane').style.zIndex = 10000;
+        }
+        if (botBuildingHighlightLayer) {
+            map.removeLayer(botBuildingHighlightLayer);
+            botBuildingHighlightLayer = null;
+        }
+
+        if (!map.getPane('pane_BotnangBotHighlight')) {
+            map.createPane('pane_BotnangBotHighlight');
+            map.getPane('pane_BotnangBotHighlight').style.zIndex = 600;
+        }
+
+        botBuildingHighlightLayer = L.geoJSON(feature, {
+            pane: 'pane_BotnangBotHighlight',
+            style: {
+                color: '#FFFF00',
+                weight: 5,
+                opacity: 1,
+                fillColor: '#FF1744',
+                fillOpacity: 0.72
+            }
+        }).addTo(map);
+
+        var bounds = botBuildingHighlightLayer.getBounds();
+        if (bounds && bounds.isValid && bounds.isValid()) {
+            map.fitBounds(bounds, {
+                maxZoom: 19,
+                padding: [40, 40]
+            });
+        }
+
+        var props = feature.properties || {};
+        var label = props.popup_title || (props.population_label === 'selected_building' ? 'Selected residential building' : (props.population_label === 'lowest_realistic' ? 'Lowest realistic estimated population' : (props.population_label === 'lowest' ? 'Lowest estimated population' : 'Highest estimated population')));
+        botBuildingHighlightLayer.bindPopup(
+            '<b>' + label + '</b><br>' +
+            'Building ID: ' + (props.id ?? 'N/A') + '<br>' +
+            'Area: ' + formatNumber(props.area_m2, 2) + ' m²<br>' +
+            'Estimated population: ' + formatNumber(props.population_estimated, 2) + ' people<br>' +
+            (props.min_area_filter_m2 ? '<small>Minimum area filter: ' + formatNumber(props.min_area_filter_m2, 0) + ' m², to avoid tiny sliver polygons.</small><br>' : '') +
+            '<small>Estimated from building footprint area, not household registration data.</small>'
+        ).openPopup();
+
+        setTimeout(function () {
+            var popupPane = map.getPane && map.getPane('popupPane');
+            if (popupPane) popupPane.style.zIndex = 10000;
+            var popupEl = document.querySelector('.leaflet-popup');
+            if (popupEl) popupEl.style.zIndex = 10001;
+        }, 50);
+    };
+
+    // Safe fetch hook: it does not disturb the existing chatbot code.
+    // It only reads a clone of /chat responses and zooms when `zoom_to` is present.
+    if (!window.__botnangZoomFetchHookInstalled) {
+        window.__botnangZoomFetchHookInstalled = true;
+        var originalFetch = window.fetch;
+        window.fetch = function () {
+            return originalFetch.apply(this, arguments).then(function (response) {
+                try {
+                    var requestUrl = String(arguments[0] && arguments[0].url ? arguments[0].url : arguments[0]);
+                    if (requestUrl.indexOf('/chat') !== -1) {
+                        response.clone().json().then(function (data) {
+                            if (data && data.zoom_to && typeof window.zoomToBotBuilding === 'function') {
+                                window.zoomToBotBuilding(data.zoom_to);
+                            }
+                        }).catch(function () {});
+                    }
+                } catch (err) {}
+                return response;
+            });
+        };
+    }
+})();
+</script>
+<script src="js/botnang_previous_design.js"></script>
+<script src="js/botnang_ai_chatbot.js"></script>
+</body>
+</html>
